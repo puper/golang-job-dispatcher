@@ -1,0 +1,17 @@
+{
+	"dataPath": "db",
+	"sync": true,
+	"host": "",
+	"port": 8081,
+	"rules": {
+		"test": 
+			{
+				"handlerType": "jsonrpc",
+				"handlerName": "test",
+				"handlerUrl": "http://localhost/jsonrpc.php",
+				"tryCount": 5,
+				"timeout": 10
+			}
+		
+	}
+}
