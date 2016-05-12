@@ -32,8 +32,9 @@ func main() {
 		log.Println(err)
 		return
 	}
-	println("start...")
 	go d.Start()
+	println("started")
 	<-sc
 	d.Close()
+	println("stopped")
 }

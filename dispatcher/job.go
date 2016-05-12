@@ -3,9 +3,9 @@ package dispatcher
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
-	"math/rand"
 	"time"
+
+	"github.com/puper/go-jsonrpc/jsonrpc"
 )
 
 func uint64ToByte(n uint64) []byte {
@@ -72,12 +72,45 @@ type Job struct {
 	Type    string
 	Key     string
 	Storage *Storage
-	Rules   []Rule
+	Rule    *Rule
 }
 
 func (this *Job) Execute() {
-	time.Sleep(time.Second * time.Duration(rand.Intn(5)*2))
-	log.Println(this)
+	if this.Rule.TryCount == 0 {
+		for {
+			i := 0
+			if this.Rule.HandlerType == "jsonrpc" {
+				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
+				params := make(map[string]string)
+				params["data"] = this.Data
+				resp, err := client.Call(this.Rule.HandlerName, params)
+				if err == nil && resp.Error == nil {
+					break
+				}
+				if i > 10 {
+					time.Sleep(time.Second * 60)
+				} else if i > 0 {
+					time.Sleep(time.Second)
+				}
+			}
+		}
+	} else {
+		var i uint8 = 0
+		for ; i < this.Rule.TryCount; i++ {
+			if this.Rule.HandlerType == "jsonrpc" {
+				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
+				params := make(map[string]string)
+				params["data"] = this.Data
+				resp, err := client.Call(this.Rule.HandlerName, params)
+				if err == nil && resp.Error == nil {
+					break
+				}
+				if i > 0 {
+					time.Sleep(time.Second)
+				}
+			}
+		}
+	}
 	this.Storage.Delete(this.Id)
 }
 

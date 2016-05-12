@@ -30,6 +30,13 @@ func NewStorage(filename string, sync bool) (s *Storage, err error) {
 		s.id = byteToUint64(iter.Key())
 	}
 	iter.Release()
+	idByte, notFound := s.backend.Get(uint64ToByte(0), nil)
+	if notFound == nil {
+		id := byteToUint64(idByte)
+		if id > s.id {
+			s.id = id
+		}
+	}
 	s.jobChan = make(chan *Job, 512)
 	s.putSignal = make(chan struct{}, 1)
 	return
@@ -56,8 +63,7 @@ func (this *Storage) start() {
 }
 
 func (this *Storage) Close() error {
-	this.running = false
-	this.wg.Wait()
+	this.backend.Put(uint64ToByte(0), uint64ToByte(this.id), &opt.WriteOptions{Sync: true})
 	return this.backend.Close()
 }
 

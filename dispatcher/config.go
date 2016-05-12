@@ -10,12 +10,14 @@ type Config struct {
 	Sync     bool              `json:sync`
 	Host     string            `json:host`
 	Port     int               `json:port`
-	Rules    map[string][]Rule `json:rules`
+	Rules    map[string]*Rule `json:rules`
 }
 
 type Rule struct {
 	Type        string  `json:type`
-	HandlerName string  `json:handlerName`
+	HandlerType string  `json:handlerType`
+	HandlerName string `json:handlerName`
+	HandlerUrl string `json:handlerUrl`
 	TryCount    uint8   `json:tryCount`
 	Timeout     float64 `timeout`
 }

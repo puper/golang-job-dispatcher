@@ -56,7 +56,7 @@ func (this *Dispatcher) Init() {
 }
 
 func (this *Dispatcher) Close() {
-	//this.storage.Close()
+	this.storage.Close()
 }
 
 func (this *Dispatcher) Start() {
@@ -99,7 +99,7 @@ func (this *Dispatcher) startNonblockDispatcher() {
 			newJob := job.(*Job)
 			if _, ok := this.cfg.Rules[newJob.Type]; ok {
 				newJob.Storage = this.storage
-				newJob.Rules = this.cfg.Rules[newJob.Type]
+				newJob.Rule = this.cfg.Rules[newJob.Type]
 				go newJob.Execute()
 			} else {
 				go this.storage.Delete(newJob.Id)
@@ -121,7 +121,7 @@ func (this *Dispatcher) startBlockDispatcher(key string) {
 			newJob := job.(*Job)
 			if _, ok := this.cfg.Rules[newJob.Type]; ok {
 				newJob.Storage = this.storage
-				newJob.Rules = this.cfg.Rules[newJob.Type]
+				newJob.Rule = this.cfg.Rules[newJob.Type]
 				newJob.Execute()
 			} else {
 				go this.storage.Delete(newJob.Id)
