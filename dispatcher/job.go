@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"bytes"
 	"encoding/binary"
+	"log"
 	"time"
 
 	"github.com/puper/go-jsonrpc/jsonrpc"
@@ -83,7 +84,7 @@ func (this *Job) Execute() {
 				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
 				params := make(map[string]string)
 				params["data"] = this.Data
-				resp, err := client.Call(this.Rule.HandlerName, params)
+				resp, err := client.CallTimeout(this.Rule.HandlerName, params, time.Duration(this.Rule.Timeout)*time.Second)
 				if err == nil && resp.Error == nil {
 					break
 				}
@@ -101,7 +102,7 @@ func (this *Job) Execute() {
 				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
 				params := make(map[string]string)
 				params["data"] = this.Data
-				resp, err := client.Call(this.Rule.HandlerName, params)
+				resp, err := client.CallTimeout(this.Rule.HandlerName, params, time.Duration(this.Rule.Timeout)*time.Second)
 				if err == nil && resp.Error == nil {
 					break
 				}

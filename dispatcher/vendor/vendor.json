@@ -9,6 +9,12 @@
 			"revisionTime": "2016-04-16T05:15:34Z"
 		},
 		{
+			"checksumSHA1": "ADvrEIwiYf+DvpVrS4qkvxlwl4U=",
+			"path": "github.com/puper/go-jsonrpc/jsonrpc",
+			"revision": "85b193ab3878401b0357e850e1545ddbfbb4dcaf",
+			"revisionTime": "2015-12-26T15:37:41Z"
+		},
+		{
 			"checksumSHA1": "LAK4Aiqy17m/Dn1gHZEMazXDf5Q=",
 			"path": "github.com/puper/go-queue/blockqueue",
 			"revision": "400c4c59fb680e093a464e309bc94d395e550e45",
