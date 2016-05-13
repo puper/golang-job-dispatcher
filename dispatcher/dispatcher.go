@@ -57,6 +57,7 @@ func (this *Dispatcher) Init() {
 
 func (this *Dispatcher) Close() {
 	this.storage.Close()
+	this.server.Close()
 }
 
 func (this *Dispatcher) Start() {

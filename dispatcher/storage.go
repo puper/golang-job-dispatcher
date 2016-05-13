@@ -63,7 +63,7 @@ func (this *Storage) start() {
 }
 
 func (this *Storage) Close() error {
-	this.backend.Put(uint64ToByte(0), uint64ToByte(this.id), &opt.WriteOptions{Sync: true})
+	//this.backend.Put(uint64ToByte(0), uint64ToByte(this.id), &opt.WriteOptions{Sync: true})
 	return this.backend.Close()
 }
 
@@ -75,9 +75,10 @@ func (this *Storage) Put(job *Job) (*Job, error) {
 	this.mutex.Lock()
 	this.id = this.id + 1
 	id := this.id
-	job.Id = this.id
 	this.mutex.Unlock()
+	job.Id = id
 	err := this.backend.Put(uint64ToByte(id), job.Bytes(), &opt.WriteOptions{Sync: this.sync})
+	this.backend.Put(uint64ToByte(0), uint64ToByte(id), &opt.WriteOptions{Sync: this.sync})
 	select {
 	case this.putSignal <- struct{}{}:
 	default:

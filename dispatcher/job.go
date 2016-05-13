@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 	"time"
 
 	"github.com/puper/go-jsonrpc/jsonrpc"

@@ -40,7 +40,7 @@ func (this *Server) Put(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *Server) Close() {
-
+	//nothing to do
 }
 
 func (this *Server) Start() {
