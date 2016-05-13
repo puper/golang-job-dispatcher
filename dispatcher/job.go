@@ -76,6 +76,8 @@ type Job struct {
 }
 
 func (this *Job) Execute() {
+	wg.Add(1)
+	defer wg.Done()
 	if this.Rule.TryCount == 0 {
 		for {
 			i := 0

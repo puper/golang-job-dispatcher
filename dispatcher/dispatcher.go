@@ -4,7 +4,10 @@ import (
 	"errors"
 	"github.com/puper/go-queue/blockqueue"
 	"github.com/puper/go-queue/listqueue"
+	"sync"
 )
+
+var wg sync.WaitGroup
 
 type (
 	Dispatcher struct {
@@ -56,8 +59,9 @@ func (this *Dispatcher) Init() {
 }
 
 func (this *Dispatcher) Close() {
-	this.storage.Close()
 	this.server.Close()
+	wg.Wait()
+	this.storage.Close()
 }
 
 func (this *Dispatcher) Start() {
