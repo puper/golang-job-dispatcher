@@ -16,6 +16,7 @@ type Storage struct {
 	sync      bool
 	wg        sync.WaitGroup
 	running   bool
+	stopCh    chan struct{}
 }
 
 func NewStorage(filename string, sync bool) (s *Storage, err error) {
@@ -39,6 +40,7 @@ func NewStorage(filename string, sync bool) (s *Storage, err error) {
 	}
 	s.jobChan = make(chan *Job, 512)
 	s.putSignal = make(chan struct{}, 1)
+	s.stopCh = make(chan struct{}, 1)
 	return
 }
 
@@ -58,12 +60,18 @@ func (this *Storage) start() {
 			this.jobChan <- NewJob(key, iter.Value())
 		}
 		iter.Release()
-		<-this.putSignal
+		select {
+		case <-this.putSignal:
+		case <-this.stopCh:
+			break
+		}
 	}
 }
 
 func (this *Storage) Close() error {
-	//this.backend.Put(uint64ToByte(0), uint64ToByte(this.id), &opt.WriteOptions{Sync: true})
+	this.running = false
+	this.stopCh <- struct{}{}
+	this.wg.Wait()
 	return this.backend.Close()
 }
 
