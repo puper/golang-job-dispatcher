@@ -32,6 +32,7 @@ func main() {
 		log.Println(err)
 		return
 	}
+	d.SetConfigFile(*configFile)
 	go d.Start()
 	println("started")
 	<-sc

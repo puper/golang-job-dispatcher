@@ -4,7 +4,9 @@ import (
 	"errors"
 	"github.com/puper/go-queue/blockqueue"
 	"github.com/puper/go-queue/listqueue"
+	"log"
 	"sync"
+	"time"
 )
 
 var wg sync.WaitGroup
@@ -19,6 +21,9 @@ type (
 		storage          *Storage
 		server           *Server
 		running          bool
+		pause            bool
+		mutex            sync.Mutex
+		configFile       string
 	}
 
 	Command struct {
@@ -26,6 +31,10 @@ type (
 		Data interface{}
 	}
 )
+
+func (this *Dispatcher) SetConfigFile(filename string) {
+	this.configFile = filename
+}
 
 func NewDispatcher(cfg *Config) (*Dispatcher, error) {
 	var err error
@@ -78,6 +87,9 @@ func (this *Dispatcher) Start() {
 				}
 			}
 		case job := <-jobChan:
+			for this.pause {
+				time.Sleep(time.Second)
+			}
 			if _, ok := this.cfg.Rules[job.Type]; ok {
 				if job.Key == "" {
 					this.nonblockJobQueue.Put(job, false, 0)
@@ -140,6 +152,33 @@ func (this *Dispatcher) Put(job *Job) (*Job, error) {
 		return this.storage.Put(job)
 	}
 	return nil, errors.New("no handler for this job")
+}
+
+func (this *Dispatcher) Pause() {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+	this.pause = true
+	wg.Wait()
+}
+
+func (this *Dispatcher) Continue() {
+	this.mutex.Lock()
+	defer this.mutex.Unlock()
+	if this.pause {
+		this.pause = false
+	}
+}
+
+func (this *Dispatcher) Reload() error {
+	this.Pause()
+	cfg, err := NewConfigWithFile(this.configFile)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	this.cfg = cfg
+	this.Continue()
+	return nil
 }
 
 func NewQueue() *blockqueue.BlockQueue {
