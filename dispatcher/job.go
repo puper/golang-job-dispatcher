@@ -75,43 +75,46 @@ type Job struct {
 	Rule    *Rule
 }
 
+func (this *Job) execute() error {
+	if this.Rule.HandlerType == "jsonrpc" {
+		client := jsonrpc.NewClient(this.Rule.HandlerUrl)
+		params := make(map[string]string)
+		params["data"] = this.Data
+		resp, err := client.CallTimeout(this.Rule.HandlerName, params, time.Duration(this.Rule.Timeout)*time.Second)
+		if err == nil && resp.Error == nil {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if resp.Error != nil {
+			return resp.Error
+		}
+	}
+	return nil
+}
+
 func (this *Job) Execute() {
 	wg.Add(1)
 	defer wg.Done()
-	if this.Rule.TryCount == 0 {
-		for {
-			i := 0
-			if this.Rule.HandlerType == "jsonrpc" {
-				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
-				params := make(map[string]string)
-				params["data"] = this.Data
-				resp, err := client.CallTimeout(this.Rule.HandlerName, params, time.Duration(this.Rule.Timeout)*time.Second)
-				if err == nil && resp.Error == nil {
-					break
-				}
-				if i > 10 {
-					time.Sleep(time.Second * 60)
-				} else if i > 0 {
-					time.Sleep(time.Second)
-				}
+	var i uint64 = 0
+LOOP:
+	for {
+		i++
+		err := this.execute()
+		if err != nil {
+			if this.Rule.TryCount > 0 && uint64(this.Rule.TryCount) <= i {
+				break LOOP
 			}
-		}
-	} else {
-		var i uint8 = 0
-		for ; i < this.Rule.TryCount; i++ {
-			if this.Rule.HandlerType == "jsonrpc" {
-				client := jsonrpc.NewClient(this.Rule.HandlerUrl)
-				params := make(map[string]string)
-				params["data"] = this.Data
-				resp, err := client.CallTimeout(this.Rule.HandlerName, params, time.Duration(this.Rule.Timeout)*time.Second)
-				if err == nil && resp.Error == nil {
-					break
-				}
-				if i > 0 {
-					time.Sleep(time.Second)
-				}
+			if i > 10 {
+				time.Sleep(time.Second * 60)
+			} else if i > 2 {
+				time.Sleep(time.Second)
 			}
+		} else {
+			break LOOP
 		}
+
 	}
 	this.Storage.Delete(this.Id)
 }

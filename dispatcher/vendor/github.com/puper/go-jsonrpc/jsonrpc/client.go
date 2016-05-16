@@ -27,6 +27,14 @@ type ResponseError struct {
 	Data    interface{} `json:"data"`
 }
 
+func (this *ResponseError) Error() string {
+	b, err := json.Marshal(this)
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
 func NewClient(url string) *Client {
 	client := new(Client)
 	client.Url = url
